@@ -16,6 +16,8 @@ import { UserModel } from './user/entity/user.entity';
 import { AuthModule } from './auth/auth.module';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AccessTokenGuard } from './auth/guard/Bearer-token.guard';
+import { PostModule } from './post/post.module';
+import { PostModel } from './post/entity/post.entity';
 
 @Module({
   imports: [
@@ -27,12 +29,13 @@ import { AccessTokenGuard } from './auth/guard/Bearer-token.guard';
       username: process.env[ENV_DB_USERNAME_KEY],
       password: process.env[ENV_DB_PASSWORD_KEY],
       database: process.env[ENV_DB_DATABASE_KEY],
-      entities: [UserModel],
+      entities: [UserModel, PostModel],
       synchronize: true,
     }),
     UserModule,
     CommonModule,
     AuthModule,
+    PostModule,
   ],
   controllers: [AppController],
   providers: [

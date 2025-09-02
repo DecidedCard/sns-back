@@ -51,9 +51,13 @@ export class AuthService {
   }
 
   verifyToken(token: string): PayLoad {
-    return this.jwtService.verify(token, {
-      secret: this.configService.get(ENV_JWT_SECRET_KEY),
-    });
+    try {
+      return this.jwtService.verify<PayLoad>(token, {
+        secret: this.configService.get(ENV_JWT_SECRET_KEY),
+      });
+    } catch {
+      throw new UnauthorizedException('유효하지 않는 토큰입니다.');
+    }
   }
 
   rotateToken(token: string, isRefreshToken: boolean) {

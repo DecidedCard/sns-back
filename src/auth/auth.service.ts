@@ -9,6 +9,7 @@ import { UserModel } from 'src/user/entity/user.entity';
 import { UserService } from 'src/user/user.service';
 import * as bcrypt from 'bcrypt';
 import { RegisterUserDto } from './dto/register-user.dto';
+import { LoginUserDto } from './dto/login-user.dto';
 
 interface PayLoad {
   type: string;
@@ -107,5 +108,11 @@ export class AuthService {
     });
 
     return this.loginUser(newUser);
+  }
+
+  async loginWithEmail(user: LoginUserDto) {
+    const existingUser = await this.authenticateWithEmailAndPassword(user);
+
+    return this.loginUser(existingUser);
   }
 }

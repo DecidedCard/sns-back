@@ -14,7 +14,7 @@ export class UserModel extends BaseModel {
   @Length(1, 20, { message: lengthValidationMessage })
   nickname: string;
 
-  @Column()
+  @Column({ unique: true })
   @IsString({ message: stringValidationMessage })
   @IsEmail({}, { message: emailValidationMessage })
   email: string;

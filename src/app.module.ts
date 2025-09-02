@@ -13,6 +13,7 @@ import {
 import { UserModule } from './user/user.module';
 import { CommonModule } from './common/common.module';
 import { UserModel } from './user/entity/user.entity';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { UserModel } from './user/entity/user.entity';
     }),
     UserModule,
     CommonModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -6,6 +6,7 @@ import { PostModel } from './entity/post.entity';
 import { Repository } from 'typeorm';
 import { DEFAULT_POST_FIND_OPTIONS } from './const/default-post-find-options.const';
 import { CreatePostDto } from './dto/create-post.dto';
+import { UpdatePostDto } from './dto/update-post.dto';
 
 @Injectable()
 export class PostService {
@@ -46,5 +47,34 @@ export class PostService {
     });
 
     return post;
+  }
+
+  async updatePost(id: number, postDto: UpdatePostDto) {
+    const post = await this.postRepository.findOne({ where: { id } });
+    const title = postDto.title;
+    const content = postDto.content;
+
+    if (!post) {
+      throw new NotFoundException('존재하지 않는 포스트입니다.');
+    }
+
+    if (title) {
+      post.title = title;
+    }
+
+    if (content) {
+      post.content = content;
+    }
+
+    const newPost = await this.postRepository.save(post);
+
+    return newPost;
+  }
+
+  isPostMine(userId: number, postId: number) {
+    return this.postRepository.exists({
+      where: { id: postId, author: { id: userId } },
+      relations: { author: true },
+    });
   }
 }

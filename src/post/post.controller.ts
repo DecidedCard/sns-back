@@ -4,14 +4,18 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { IsPublic } from 'src/common/decorator/is-public.decorator';
 import { PaginatePostDto } from './dto/paginate-post.dto';
 import { User } from 'src/user/decorator/user.decorator';
 import { CreatePostDto } from './dto/create-post.dto';
+import { UpdatePostDto } from './dto/update-post.dto';
+import { IsPostMineOrAdminGuard } from './guard/is-post-mine-or-admin.guard';
 
 @Controller('post')
 export class PostController {
@@ -30,7 +34,16 @@ export class PostController {
   }
 
   @Post()
-  async postPost(@User('id') id: number, @Body() body: CreatePostDto) {
+  postPost(@User('id') id: number, @Body() body: CreatePostDto) {
     return this.postService.createPost(id, body);
+  }
+
+  @Patch(':postId')
+  @UseGuards(IsPostMineOrAdminGuard)
+  patchPost(
+    @Param('postId', ParseIntPipe) id: number,
+    @Body() body: UpdatePostDto,
+  ) {
+    return this.postService.updatePost(id, body);
   }
 }

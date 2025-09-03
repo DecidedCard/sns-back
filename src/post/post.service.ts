@@ -71,6 +71,18 @@ export class PostService {
     return newPost;
   }
 
+  async deletePost(id: number) {
+    const post = await this.postRepository.findOne({ where: { id } });
+
+    if (!post) {
+      throw new NotFoundException('존재하지 않는 포스트입니다.');
+    }
+
+    await this.postRepository.delete(id);
+
+    return id;
+  }
+
   isPostMine(userId: number, postId: number) {
     return this.postRepository.exists({
       where: { id: postId, author: { id: userId } },

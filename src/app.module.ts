@@ -18,6 +18,7 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AccessTokenGuard } from './auth/guard/Bearer-token.guard';
 import { PostModule } from './post/post.module';
 import { PostModel } from './post/entity/post.entity';
+import { ImageModel } from './common/entity/image.entity';
 
 @Module({
   imports: [
@@ -29,7 +30,7 @@ import { PostModel } from './post/entity/post.entity';
       username: process.env[ENV_DB_USERNAME_KEY],
       password: process.env[ENV_DB_PASSWORD_KEY],
       database: process.env[ENV_DB_DATABASE_KEY],
-      entities: [UserModel, PostModel],
+      entities: [UserModel, PostModel, ImageModel],
       synchronize: true,
     }),
     UserModule,

@@ -1,7 +1,7 @@
 import { Column, Entity, ManyToOne } from 'typeorm';
 import { BaseModel } from './base.entity';
 import { PostModel } from 'src/post/entity/post.entity';
-import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { join } from 'path';
 import { POST_PUBLIC_IMAGE_PATH } from '../const/path.const';
@@ -13,7 +13,7 @@ export enum ImageModelType {
 @Entity()
 export class ImageModel extends BaseModel {
   @Column({ default: 0 })
-  @IsNumber()
+  @IsInt()
   @IsOptional()
   order: number;
 

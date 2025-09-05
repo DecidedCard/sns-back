@@ -3,7 +3,7 @@ import { CommonService } from 'src/common/common.service';
 import { PaginatePostDto } from './dto/paginate-post.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PostModel } from './entity/post.entity';
-import { Repository } from 'typeorm';
+import { QueryRunner, Repository } from 'typeorm';
 import { DEFAULT_POST_FIND_OPTIONS } from './const/default-post-find-options.const';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
@@ -16,6 +16,12 @@ export class PostService {
     private readonly commonService: CommonService,
   ) {}
 
+  getRepository(qr?: QueryRunner) {
+    return qr
+      ? qr.manager.getRepository<PostModel>(PostModel)
+      : this.postRepository;
+  }
+
   async paginatePosts(dto: PaginatePostDto) {
     return this.commonService.paginate(
       dto,
@@ -25,8 +31,10 @@ export class PostService {
     );
   }
 
-  async getPostById(id: number) {
-    const post = await this.postRepository.findOne({
+  async getPostById(id: number, qr?: QueryRunner) {
+    const repository = this.getRepository(qr);
+
+    const post = await repository.findOne({
       ...DEFAULT_POST_FIND_OPTIONS,
       where: { id },
     });
@@ -38,10 +46,13 @@ export class PostService {
     return post;
   }
 
-  async createPost(authorId: number, postDto: CreatePostDto) {
-    const post = await this.postRepository.save({
+  async createPost(authorId: number, postDto: CreatePostDto, qr?: QueryRunner) {
+    const repository = this.getRepository(qr);
+
+    const post = await repository.save({
       author: { id: authorId },
       ...postDto,
+      images: [],
       likeCount: 0,
       commentCount: 0,
     });

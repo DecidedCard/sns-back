@@ -19,10 +19,16 @@ import { AccessTokenGuard } from './auth/guard/Bearer-token.guard';
 import { PostModule } from './post/post.module';
 import { PostModel } from './post/entity/post.entity';
 import { ImageModel } from './common/entity/image.entity';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { PUBLIC_FOLDER_PATH } from './common/const/path.const';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ envFilePath: '.env', isGlobal: true }),
+    ServeStaticModule.forRoot({
+      rootPath: PUBLIC_FOLDER_PATH,
+      serveRoot: '/public',
+    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env[ENV_DB_HOST_KEY],

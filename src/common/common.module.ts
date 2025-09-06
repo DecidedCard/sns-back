@@ -6,6 +6,8 @@ import { extname } from 'path';
 import * as multer from 'multer';
 import { TEMP_FOLDER_PATH } from './const/path.const';
 import { v4 as uuid } from 'uuid';
+import { APP_FILTER } from '@nestjs/core';
+import { MulterExceptionFilter } from './exception-filter/multer-exception-filter';
 
 @Module({
   imports: [
@@ -16,7 +18,12 @@ import { v4 as uuid } from 'uuid';
 
         if (ext !== '.jpg' && ext !== '.jpeg' && ext !== '.png') {
           return cb(
-            new BadRequestException('jpg/jpeg/png 파일만 업로드 가능합니다.'),
+            new BadRequestException({
+              statusCode: 400,
+              message: 'jpg/jpeg/png 파일만 업로드 가능합니다.',
+              timeStamp: new Date().toLocaleString('kr'),
+              path: '/common/image',
+            }),
             false,
           );
         }
@@ -24,7 +31,7 @@ import { v4 as uuid } from 'uuid';
         return cb(null, true);
       },
       storage: multer.diskStorage({
-        destination: function (req, es, cb) {
+        destination: function (req, file, cb) {
           cb(null, TEMP_FOLDER_PATH);
         },
         filename: function (req, file, cb) {
@@ -35,6 +42,9 @@ import { v4 as uuid } from 'uuid';
   ],
   exports: [CommonService],
   controllers: [CommonController],
-  providers: [CommonService],
+  providers: [
+    CommonService,
+    { provide: APP_FILTER, useClass: MulterExceptionFilter },
+  ],
 })
 export class CommonModule {}

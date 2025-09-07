@@ -60,8 +60,10 @@ export class PostService {
     return post;
   }
 
-  async updatePost(id: number, postDto: UpdatePostDto) {
-    const post = await this.postRepository.findOne({ where: { id } });
+  async updatePost(id: number, postDto: UpdatePostDto, qr?: QueryRunner) {
+    const repository = this.getRepository(qr);
+
+    const post = await repository.findOne({ where: { id } });
     const title = postDto.title;
     const content = postDto.content;
 
@@ -77,7 +79,7 @@ export class PostService {
       post.content = content;
     }
 
-    const newPost = await this.postRepository.save(post);
+    const newPost = await repository.save(post);
 
     return newPost;
   }
@@ -96,7 +98,7 @@ export class PostService {
     return id;
   }
 
-  isPostMine(userId: number, postId: number) {
+  async isPostMine(userId: number, postId: number) {
     return this.postRepository.exists({
       where: { id: postId, author: { id: userId } },
       relations: { author: true },

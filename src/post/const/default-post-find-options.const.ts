@@ -6,4 +6,5 @@ export const DEFAULT_POST_FIND_OPTIONS: FindManyOptions<PostModel> = {
     author: true,
     images: true,
   },
+  select: { images: { path: true } },
 };

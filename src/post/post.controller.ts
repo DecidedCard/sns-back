@@ -68,7 +68,6 @@ export class PostController {
       await this.postImageService.createPostImage(
         {
           post,
-          order: i,
           path,
           type: ImageModelType.POST_IMAGE,
         },
@@ -91,11 +90,67 @@ export class PostController {
 
   @Patch(':postId')
   @UseGuards(IsPostMineOrAdminGuard)
-  patchPost(
+  @UseInterceptors(TransactionInterceptor)
+  async patchPost(
     @Param('postId', ParseIntPipe) id: number,
     @Body() body: UpdatePostDto,
+    @QueryRunner() qr: QR,
+    @OnCommit() onCommit: (fn: Fn) => void,
   ) {
-    return this.postService.updatePost(id, body);
+    const post = await this.postService.updatePost(id, body, qr);
+
+    if (body.images) {
+      const { add = [], remove = [] } = body.images;
+
+      if (remove.length) {
+        const imgs = await this.postImageService.findByIdsForPost(
+          remove,
+          id,
+          qr,
+        );
+
+        for (const id of remove) {
+          await this.postImageService.deletePostImage(id, qr);
+        }
+
+        onCommit(async () => {
+          for (const { path } of imgs) {
+            const publicPath = join(POST_PUBLIC_IMAGE_PATH, path);
+            try {
+              await promises.rm(publicPath);
+            } catch (e) {
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+              if (e.code === 'ENOENT') continue;
+              console.error('[delete image failed]', path, e);
+            }
+          }
+        });
+      }
+
+      for (const tempPath of add) {
+        await this.postImageService.createPostImage(
+          {
+            post,
+            path: tempPath,
+            type: ImageModelType.POST_IMAGE,
+          },
+          qr,
+        );
+
+        onCommit(async () => {
+          const src = join(TEMP_FOLDER_PATH, tempPath);
+          const dst = join(POST_IMAGE_PATH, basename(tempPath));
+
+          try {
+            await promises.rename(src, dst);
+          } catch (e) {
+            console.error('[move image failed]', tempPath, e);
+          }
+        });
+      }
+    }
+
+    return this.postService.getPostById(id, qr);
   }
 
   @Delete(':postId')
@@ -113,7 +168,7 @@ export class PostController {
       await this.postImageService.deletePostImage(id, qr);
     }
 
-    await this.postService.deletePost(id);
+    await this.postService.deletePost(id, qr);
 
     onCommit(async () => {
       for (const { path } of images) {

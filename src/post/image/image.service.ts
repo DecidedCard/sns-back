@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ImageModel } from 'src/common/entity/image.entity';
-import { QueryRunner, Repository } from 'typeorm';
+import { In, QueryRunner, Repository } from 'typeorm';
 import { CreatePostImageDto } from './dto/create-post-image.dto';
 import { join } from 'path';
 import {
@@ -25,6 +25,15 @@ export class PostImageService {
     return qr
       ? qr.manager.getRepository<ImageModel>(ImageModel)
       : this.imageRepository;
+  }
+
+  async findByIdsForPost(ids: number[], postId: number, qr?: QueryRunner) {
+    const repository = this.getRepository(qr);
+
+    return repository.find({
+      where: { id: In(ids), post: { id: postId } },
+      relations: { post: true },
+    });
   }
 
   async createPostImage(dto: CreatePostImageDto, qr?: QueryRunner) {

@@ -11,7 +11,11 @@ import { QueryRunner as QR } from 'typeorm';
 import { OnCommit } from 'src/common/decorator/on-commit.decorator';
 import { Fn } from 'src/common/type';
 import { basename, join } from 'path';
-import { TEMP_FOLDER_PATH, USER_IMAGE_PATH } from 'src/common/const/path.const';
+import {
+  TEMP_FOLDER_PATH,
+  USER_IMAGE_PATH,
+  USER_PUBLIC_IMAGE_PATH,
+} from 'src/common/const/path.const';
 import { promises } from 'fs';
 
 @Controller('user')
@@ -37,6 +41,23 @@ export class UserController {
     const updateUser = await this.userService.updateUser(author, body, qr);
 
     if (body.image) {
+      if (author.image) {
+        const path = author.image.path;
+        await this.userImageService.deleteUserImage(author.image.id, qr);
+
+        onCommit(async () => {
+          const publicPath = join(USER_PUBLIC_IMAGE_PATH, path);
+
+          try {
+            await promises.rm(publicPath);
+          } catch (e) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            if (e.code === 'ENOENT') return;
+            console.error('[delete image failed]', path, e);
+          }
+        });
+      }
+
       await this.userImageService.createUserImage(
         {
           path: body.image,

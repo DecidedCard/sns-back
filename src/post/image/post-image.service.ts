@@ -8,10 +8,7 @@ import { ImageModel } from 'src/common/entity/image.entity';
 import { In, QueryRunner, Repository } from 'typeorm';
 import { CreatePostImageDto } from './dto/create-post-image.dto';
 import { join } from 'path';
-import {
-  POST_PUBLIC_IMAGE_PATH,
-  TEMP_FOLDER_PATH,
-} from 'src/common/const/path.const';
+import { TEMP_FOLDER_PATH } from 'src/common/const/path.const';
 import { promises } from 'fs';
 
 @Injectable()
@@ -63,6 +60,6 @@ export class PostImageService {
       throw new InternalServerErrorException('저장된 이미지가 없습니다.');
     }
 
-    await promises.rm(`${POST_PUBLIC_IMAGE_PATH}/${image.path}`);
+    return;
   }
 }

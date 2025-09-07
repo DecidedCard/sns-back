@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ImageModel } from 'src/common/entity/image.entity';
 import { QueryRunner, Repository } from 'typeorm';
@@ -31,5 +35,19 @@ export class UserImageService {
     const result = await repository.save({ ...dto });
 
     return result;
+  }
+
+  async deleteUserImage(id: number, qr?: QueryRunner) {
+    const repository = this.getRepository(qr);
+
+    const image = await repository.findOne({ where: { id } });
+
+    await repository.delete(id);
+
+    if (!image) {
+      throw new InternalServerErrorException('저장된 이미지가 없습니다.');
+    }
+
+    return;
   }
 }

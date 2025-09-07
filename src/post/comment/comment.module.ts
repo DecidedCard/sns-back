@@ -8,6 +8,7 @@ import { PostModule } from '../post.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([CommentModel]), CommonModule, PostModule],
+  exports: [CommentService],
   controllers: [CommentController],
   providers: [CommentService],
 })

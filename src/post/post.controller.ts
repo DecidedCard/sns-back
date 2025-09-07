@@ -164,10 +164,6 @@ export class PostController {
     const post = await this.postService.getPostById(id, qr);
     const images = post.images.map((img) => img) ?? [];
 
-    for (const { id } of images) {
-      await this.postImageService.deletePostImage(id, qr);
-    }
-
     await this.postService.deletePost(id, qr);
 
     onCommit(async () => {

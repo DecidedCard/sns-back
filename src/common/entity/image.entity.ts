@@ -29,6 +29,6 @@ export class ImageModel extends BaseModel {
   })
   path: string;
 
-  @ManyToOne(() => PostModel, (post) => post.images)
+  @ManyToOne(() => PostModel, (post) => post.images, { onDelete: 'CASCADE' })
   post?: PostModel;
 }

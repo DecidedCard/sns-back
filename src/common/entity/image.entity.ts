@@ -8,6 +8,7 @@ import { POST_PUBLIC_IMAGE_PATH } from '../const/path.const';
 
 export enum ImageModelType {
   POST_IMAGE,
+  USER_IMAGE,
 }
 
 @Entity()

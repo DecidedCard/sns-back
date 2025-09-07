@@ -1,7 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserModel } from './entity/user.entity';
-import { Repository } from 'typeorm';
+import { QueryRunner, Repository } from 'typeorm';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
@@ -9,6 +10,19 @@ export class UserService {
     @InjectRepository(UserModel)
     private readonly userRepository: Repository<UserModel>,
   ) {}
+  getRepository(qr?: QueryRunner) {
+    return qr
+      ? qr.manager.getRepository<UserModel>(UserModel)
+      : this.userRepository;
+  }
+
+  async getUserByEmail(email: string): Promise<UserModel | null> {
+    return this.userRepository.findOne({
+      where: { email },
+      relations: { image: true },
+    });
+  }
+
   async createUser(user: Pick<UserModel, 'email' | 'nickname' | 'password'>) {
     const nicknameExists = await this.userRepository.exists({
       where: { nickname: user.nickname },
@@ -35,7 +49,15 @@ export class UserService {
     return userObject;
   }
 
-  async getUserByEmail(email: string): Promise<UserModel | null> {
-    return this.userRepository.findOne({ where: { email } });
+  async updateUser(user: UserModel, dto: UpdateUserDto, qr?: QueryRunner) {
+    const repository = this.getRepository(qr);
+
+    if (dto.nickname) {
+      user.nickname = dto.nickname;
+    }
+
+    const updateUser = await repository.save(user);
+
+    return updateUser;
   }
 }

@@ -2,7 +2,7 @@ import { IsArray, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { stringValidationMessage } from 'src/common/validation-message/string-validation.message';
 
-export class UpdatePOstImagesOpsDto {
+export class UpdatePostImagesOpsDto {
   @IsOptional()
   @IsArray()
   add?: string[];
@@ -23,6 +23,6 @@ export class UpdatePostDto {
 
   @IsOptional()
   @ValidateNested()
-  @Type(() => UpdatePOstImagesOpsDto)
-  images?: UpdatePOstImagesOpsDto;
+  @Type(() => UpdatePostImagesOpsDto)
+  images?: UpdatePostImagesOpsDto;
 }

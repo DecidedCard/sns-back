@@ -4,10 +4,11 @@ import { BaseModel } from 'src/common/entity/base.entity';
 import { emailValidationMessage } from 'src/common/validation-message/email-validation.message';
 import { lengthValidationMessage } from 'src/common/validation-message/length-validation.message';
 import { stringValidationMessage } from 'src/common/validation-message/string-validation.message';
-import { Column, Entity, OneToMany } from 'typeorm';
+import { Column, Entity, OneToMany, OneToOne } from 'typeorm';
 import { RolesEnum } from '../const/roles.const';
 import { PostModel } from 'src/post/entity/post.entity';
 import { CommentModel } from 'src/post/comment/entity/comment.entity';
+import { ImageModel } from 'src/common/entity/image.entity';
 
 @Entity()
 export class UserModel extends BaseModel {
@@ -35,4 +36,7 @@ export class UserModel extends BaseModel {
 
   @OneToMany(() => CommentModel, (comment) => comment.author)
   comments: CommentModel[];
+
+  @OneToOne(() => ImageModel, (image) => image.author)
+  image: ImageModel;
 }

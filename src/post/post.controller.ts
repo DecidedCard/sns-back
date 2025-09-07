@@ -21,7 +21,7 @@ import { IsPostMineOrAdminGuard } from './guard/is-post-mine-or-admin.guard';
 import { TransactionInterceptor } from 'src/common/interceptor/transaction.interceptor';
 import { QueryRunner } from 'src/common/decorator/query-runner.decorator';
 import { QueryRunner as QR } from 'typeorm';
-import { PostImageService } from './image/image.service';
+import { PostImageService } from './image/post-image.service';
 import { ImageModelType } from 'src/common/entity/image.entity';
 import { OnCommit } from 'src/common/decorator/on-commit.decorator';
 import { Fn } from 'src/common/type';

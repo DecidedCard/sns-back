@@ -82,14 +82,16 @@ export class PostService {
     return newPost;
   }
 
-  async deletePost(id: number) {
-    const post = await this.postRepository.findOne({ where: { id } });
+  async deletePost(id: number, qr?: QueryRunner) {
+    const repository = this.getRepository(qr);
+
+    const post = await repository.findOne({ where: { id } });
 
     if (!post) {
       throw new NotFoundException('존재하지 않는 포스트입니다.');
     }
 
-    await this.postRepository.delete(id);
+    await repository.delete(id);
 
     return id;
   }

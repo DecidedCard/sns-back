@@ -5,12 +5,9 @@ import {
   InternalServerErrorException,
   NestInterceptor,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { catchError, Observable, tap } from 'rxjs';
-import { UserModel } from 'src/user/entity/user.entity';
-import { DataSource, QueryRunner } from 'typeorm';
-
-type Req = Request & { user: UserModel; queryRunner: QueryRunner };
+import { DataSource } from 'typeorm';
+import { Fn, Req } from '../type';
 
 @Injectable()
 export class TransactionInterceptor implements NestInterceptor {
@@ -20,7 +17,9 @@ export class TransactionInterceptor implements NestInterceptor {
     context: ExecutionContext,
     next: CallHandler<any>,
   ): Promise<Observable<any>> {
-    const req: Req = context.switchToHttp().getRequest();
+    const req: Req & { onCommit: (fn: Fn) => void } = context
+      .switchToHttp()
+      .getRequest();
 
     const qr = this.dataSource.createQueryRunner();
 
@@ -29,6 +28,9 @@ export class TransactionInterceptor implements NestInterceptor {
     await qr.startTransaction();
 
     req.queryRunner = qr;
+
+    const postCommitTasks: Array<Fn> = [];
+    req.onCommit = (fn: Fn) => postCommitTasks.push(fn);
 
     return next.handle().pipe(
       catchError(async (e) => {
@@ -41,6 +43,15 @@ export class TransactionInterceptor implements NestInterceptor {
       tap(() => {
         qr.commitTransaction()
           .then(() => qr.release())
+          .then(async () => {
+            for (const task of postCommitTasks) {
+              try {
+                await task();
+              } catch (error) {
+                console.error('[post-commit]', error);
+              }
+            }
+          })
           .catch((e) => {
             console.error(e);
             throw new InternalServerErrorException(e);

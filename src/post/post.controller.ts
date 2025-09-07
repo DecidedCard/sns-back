@@ -23,6 +23,15 @@ import { QueryRunner } from 'src/common/decorator/query-runner.decorator';
 import { QueryRunner as QR } from 'typeorm';
 import { PostImageService } from './image/image.service';
 import { ImageModelType } from 'src/common/entity/image.entity';
+import { OnCommit } from 'src/common/decorator/on-commit.decorator';
+import { Fn } from 'src/common/type';
+import { basename, join } from 'path';
+import {
+  POST_IMAGE_PATH,
+  POST_PUBLIC_IMAGE_PATH,
+  TEMP_FOLDER_PATH,
+} from 'src/common/const/path.const';
+import { promises } from 'fs';
 
 @Controller('post')
 export class PostController {
@@ -49,19 +58,32 @@ export class PostController {
     @User('id') id: number,
     @Body() body: CreatePostDto,
     @QueryRunner() qr: QR,
+    @OnCommit() onCommit: (fn: Fn) => void,
   ) {
     const post = await this.postService.createPost(id, body, qr);
 
     for (let i = 0; i < body.images.length; i++) {
+      const path = body.images[i];
+
       await this.postImageService.createPostImage(
         {
           post,
           order: i,
-          path: body.images[i],
+          path,
           type: ImageModelType.POST_IMAGE,
         },
         qr,
       );
+
+      onCommit(async () => {
+        const src = join(TEMP_FOLDER_PATH, path);
+        const dst = join(POST_IMAGE_PATH, basename(path));
+        try {
+          await promises.rename(src, dst);
+        } catch (e) {
+          console.error('[move image failed]', path, e);
+        }
+      });
     }
 
     return this.postService.getPostById(post.id, qr);
@@ -78,7 +100,34 @@ export class PostController {
 
   @Delete(':postId')
   @UseGuards(IsPostMineOrAdminGuard)
-  deletePost(@Param('postId', ParseIntPipe) id: number) {
-    return this.postService.deletePost(id);
+  @UseInterceptors(TransactionInterceptor)
+  async deletePost(
+    @Param('postId', ParseIntPipe) id: number,
+    @QueryRunner() qr: QR,
+    @OnCommit() onCommit: (fn: Fn) => void,
+  ) {
+    const post = await this.postService.getPostById(id, qr);
+    const images = post.images.map((img) => img) ?? [];
+
+    for (const { id } of images) {
+      await this.postImageService.deletePostImage(id, qr);
+    }
+
+    await this.postService.deletePost(id);
+
+    onCommit(async () => {
+      for (const { path } of images) {
+        const publicPath = join(POST_PUBLIC_IMAGE_PATH, path);
+        try {
+          await promises.rm(publicPath);
+        } catch (e) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+          if (e.code === 'ENOENT') continue;
+          console.error('[delete image failed]', path, e);
+        }
+      }
+    });
+
+    return { id };
   }
 }

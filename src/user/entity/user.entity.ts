@@ -7,6 +7,7 @@ import { stringValidationMessage } from 'src/common/validation-message/string-va
 import { Column, Entity, OneToMany } from 'typeorm';
 import { RolesEnum } from '../const/roles.const';
 import { PostModel } from 'src/post/entity/post.entity';
+import { CommentModel } from 'src/post/comment/entity/comment.entity';
 
 @Entity()
 export class UserModel extends BaseModel {
@@ -31,4 +32,7 @@ export class UserModel extends BaseModel {
 
   @OneToMany(() => PostModel, (post) => post.author)
   posts: PostModel;
+
+  @OneToMany(() => CommentModel, (comment) => comment.author)
+  comments: CommentModel[];
 }
